@@ -153,19 +153,19 @@ class ErrorReturnCode(Exception):
     derived classes with the format: ErrorReturnCode_NNN where NNN is the exit
     code number.  the reason for this is it reduces boiler plate code when
     testing error return codes:
-    
+
         try:
             some_cmd()
         except ErrorReturnCode_12:
             print("couldn't do X")
-            
+
     vs:
         try:
             some_cmd()
         except ErrorReturnCode as e:
             if e.exit_code == 12:
                 print("couldn't do X")
-    
+
     it's not much of a savings, but i believe it makes the code easier to read """
 
     truncate_cap = 750
@@ -350,7 +350,7 @@ class Logger(object):
     script is done.  with sh, it's easy to create loggers with unique names if
     we want our loggers to include our command arguments.  for example, these
     are all unique loggers:
-        
+
             ls -l
             ls -l /tmp
             ls /tmp
@@ -364,7 +364,7 @@ class Logger(object):
         self.name = name
         if context:
             context = context.replace("%", "%%")
-        self.context = context 
+        self.context = context
         self.log = logging.getLogger("%s.%s" % (SH_LOGGER_NAME, name))
 
     def _format_msg(self, msg, *args):
@@ -478,7 +478,7 @@ class RunningCommand(object):
         # there's currently only one case where we wouldn't spawn a child
         # process, and that's if we're using a with-context with our command
         if spawn_process:
-            self.log.info("starting process")
+            self.log.debug("starting process")
             self.process = OProc(self.log, cmd, stdin, stdout, stderr,
                     self.call_args, pipe)
 
@@ -660,7 +660,7 @@ class Command(object):
     represents the program itself (and not a running instance of it), it should
     hold very little state.  in fact, the only state it does hold is baked
     arguments.
-    
+
     when a Command object is called, the result that is returned is a
     RunningCommand object, which represents the Command put into an execution
     state. """
@@ -677,8 +677,8 @@ class Command(object):
 
         "with": False, # prepend the command to every command after it
         "in": None,
-        "out": None, # redirect STDOUT
-        "err": None, # redirect STDERR
+        "out": sys.stdout.buffer, # redirect STDOUT
+        "err": sys.stderr.buffer, # redirect STDERR
         "err_to_out": None, # redirect STDERR to STDOUT
 
         # stdin buffer size
@@ -787,7 +787,7 @@ output"),
         if not found:
             raise CommandNotFound(path)
 
-        self._path = encode_to_py3bytes_or_py2str(found) 
+        self._path = encode_to_py3bytes_or_py2str(found)
 
         self._partial = False
         self._partial_baked_args = []
@@ -1449,7 +1449,7 @@ class OProc(object):
         can be written to be written """
         done = False
         while not done and self.is_alive():
-            self.log.debug("%r ready for more input", stdin)
+            #self.log.debug("%r ready for more input", stdin)
             done = stdin.write()
 
         stdin.close()
@@ -1624,7 +1624,7 @@ class NotYetReadyToRead(Exception): pass
 def determine_how_to_read_input(input_obj):
     """ given some kind of input object, return a function that knows how to
     read chunks of that input object.
-    
+
     each reader function should return a chunk and raise a DoneReadingForever
     exception, or return None, when there's no more data to read
 
